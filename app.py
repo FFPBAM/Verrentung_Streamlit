@@ -1136,7 +1136,7 @@ def check_login():
     
     # Login-Interface
     if not st.session_state.logged_in:
-        st.title("🔐 Login - Ausschüttungs-VV Rechner | Fürst Fugger Privatbank")
+        st.title("Ausschüttungs-VV Rechner | Fürst Fugger Privatbank")
         st.write("Bitte melden Sie sich an, um fortzufahren.")
         
         st.text_input("Benutzername", key="username_input")
@@ -1883,4 +1883,5 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 

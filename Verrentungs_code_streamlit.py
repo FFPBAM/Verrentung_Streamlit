@@ -42,7 +42,8 @@ import numpy as np
 # ---------------------------------------------------------------------------
 
 # Path to Excel file with MSCI World, REXP, CPI
-DATA_FILE = Path(r"C:\Users\Bloomberg\Documents\Python_Scripts\Verrentung_Streamlit\Daten Verrentung.xlsx")
+# Für lokale Entwicklung und GitHub/Streamlit Cloud
+DATA_FILE = Path("Daten Verrentung.xlsx")
 
 # Portfolio weights (must sum to 1.0)
 PORTFOLIO_WEIGHTS = {
@@ -1103,9 +1104,75 @@ def plot_cumulative_withdrawals(
 # STREAMLIT FRONT-END (VARIANTE B: NUR IN run_app())
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# LOGIN AUTHENTICATION
+# ---------------------------------------------------------------------------
+
+def check_login():
+    """
+    Login-Authentifizierung mit Streamlit Secrets.
+    Gibt True zurück wenn der Benutzer eingeloggt ist.
+    """
+    import streamlit as st
+    
+    # Secrets laden (Benutzername und Passwörter)
+    USERS = st.secrets["passwords"]
+    
+    # Session State initialisieren
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+    
+    # Login-Funktion
+    def verify_password():
+        username = st.session_state.get("username_input", "")
+        password = st.session_state.get("password_input", "")
+        
+        if username in USERS and USERS[username] == password:
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            return True
+        return False
+    
+    # Login-Interface
+    if not st.session_state.logged_in:
+        st.title("🔐 Login - Verrentungsrechner")
+        st.write("Bitte melden Sie sich an, um fortzufahren.")
+        
+        st.text_input("Benutzername", key="username_input")
+        st.text_input("Passwort", type="password", key="password_input")
+        
+        if st.button("Einloggen"):
+            if verify_password():
+                st.success("Erfolgreich eingeloggt!")
+                st.rerun()
+            else:
+                st.error("❌ Falscher Benutzername oder Passwort")
+        
+        return False
+    else:
+        # Logout-Button in der Sidebar
+        with st.sidebar:
+            st.write(f"👤 Angemeldet als: **{st.session_state.username}**")
+            if st.button("Ausloggen"):
+                st.session_state.logged_in = False
+                st.session_state.username = ""
+                st.rerun()
+        
+        return True
+
+
+# ---------------------------------------------------------------------------
+# STREAMLIT APP
+# ---------------------------------------------------------------------------
+
 def run_app() -> None:
     import tempfile
     import streamlit as st
+    
+    # Login-Prüfung am Anfang - App stoppen wenn nicht eingeloggt
+    if not check_login():
+        st.stop()
 
     st.set_page_config(page_title="Verrentungs-Simulation (MSCI World + REXP + Gold)", layout="wide")
     st.title("Verrentungs-Simulation: MSCI World, REXP und Gold")

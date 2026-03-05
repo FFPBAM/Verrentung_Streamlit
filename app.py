@@ -43,7 +43,7 @@ import numpy as np
 
 # Path to Excel file with MSCI World, REXP, CPI
 # Für lokale Entwicklung und GitHub/Streamlit Cloud
-DATA_FILE = Path("Daten Verrentung.xlsx")
+DATA_FILE = Path("Daten Verrentung_EUR.xlsx")
 
 # Portfolio weights (must sum to 1.0)
 PORTFOLIO_WEIGHTS = {
@@ -1883,5 +1883,6 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 

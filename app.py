@@ -36,7 +36,71 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+import streamlit as st
 
+st.markdown("""
+<style>
+@media print {
+    /* Hide Streamlit UI chrome */
+    [data-testid="stSidebar"],
+    header,
+    footer,
+    .stDeployButton,
+    #MainMenu {
+        display: none !important;
+    }
+
+    /* Remove main content padding/margin */
+    .main .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* Prevent numbers/text from being cut off */
+    * {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+    /* Ensure metric values display fully */
+    [data-testid="stMetricValue"] {
+        font-size: 18pt !important;
+        white-space: nowrap !important;
+    }
+
+    [data-testid="stMetricLabel"] {
+        font-size: 10pt !important;
+    }
+
+    /* Force full-width layout */
+    .stColumns, [data-testid="column"] {
+        width: 100% !important;
+        display: block !important;
+    }
+
+    /* Charts: prevent page breaks inside */
+    [data-testid="stPlotlyChart"],
+    [data-testid="stVegaLiteChart"],
+    iframe {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        max-width: 100% !important;
+    }
+
+    /* Page margins */
+    @page {
+        margin: 1.5cm;
+        size: A4 landscape;
+    }
+
+    /* Dark background → white for print */
+    body, .main, [data-testid="stAppViewContainer"] {
+        background-color: white !important;
+        color: black !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 # SCENARIO SETTINGS (ADJUST HERE)
 # ---------------------------------------------------------------------------
@@ -1883,6 +1947,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

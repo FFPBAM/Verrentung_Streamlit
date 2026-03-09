@@ -108,6 +108,24 @@ st.markdown("""
         background-color: white !important;
         color: black !important;
     }
+    @media print {
+        /* Scale entire content to fit one page */
+        body {
+            transform: scale(0.75);
+            transform-origin: top left;
+            width: 133%; /* compensate for scale */
+        }
+        
+        /* Prevent any page breaks */
+        * {
+            page-break-before: avoid !important;
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-before: avoid !important;
+            break-after: avoid !important;
+            break-inside: avoid !important;
+        }
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -2048,6 +2066,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

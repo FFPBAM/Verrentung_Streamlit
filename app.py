@@ -38,7 +38,9 @@ import numpy as np
 
 import streamlit as st
 
-st.markdown("""
+import streamlit.components.v1 as components
+
+components.html("""
 <button id="print-btn" style="
     background-color: #e63946;
     color: white;
@@ -47,21 +49,21 @@ st.markdown("""
     font-size: 14pt;
     border-radius: 6px;
     cursor: pointer;
-    margin: 10px 0;
 ">🖨️ Drucken (alle Tabs)</button>
 
 <script>
 document.getElementById('print-btn').addEventListener('click', function() {
-    const tabs = document.querySelectorAll('[data-testid="stTabs"] button[role="tab"]');
+    const parent = window.parent;
+    const tabs = parent.document.querySelectorAll('[data-testid="stTabs"] button[role="tab"]');
     let delay = 0;
     tabs.forEach(function(tab) {
         setTimeout(function() { tab.click(); }, delay);
         delay += 600;
     });
-    setTimeout(function() { window.print(); }, delay + 800);
+    setTimeout(function() { parent.print(); }, delay + 800);
 });
 </script>
-""", unsafe_allow_html=True)
+""", height=60)
 # ---------------------------------------------------------------------------
 # SCENARIO SETTINGS (ADJUST HERE)
 # ---------------------------------------------------------------------------
@@ -1909,6 +1911,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

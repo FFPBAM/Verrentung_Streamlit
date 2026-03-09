@@ -39,68 +39,54 @@ import numpy as np
 st.markdown("""
 <style>
 @media print {
-    /* Hide Streamlit UI chrome */
-    [data-testid="stSidebar"],
+    [data-testid='stSidebar'],
     header,
     footer,
     .stDeployButton,
     #MainMenu {
         display: none !important;
     }
-
     .main .block-container {
         padding: 0 !important;
         max-width: 100% !important;
     }
-
     * {
         overflow: visible !important;
         white-space: normal !important;
     }
-
-    /* FIX: Keep metric columns visible in a row */
-    [data-testid="stHorizontalBlock"] {
+    [data-testid='stHorizontalBlock'] {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: wrap !important;
         gap: 1rem !important;
     }
-
-    [data-testid="column"] {
+    [data-testid='column'] {
         flex: 1 1 auto !important;
         width: auto !important;
         display: block !important;
         min-width: 120px !important;
     }
-
-    /* Metric values: ensure full display */
-    [data-testid="stMetricValue"] {
+    [data-testid='stMetricValue'] {
         font-size: 16pt !important;
         white-space: nowrap !important;
         overflow: visible !important;
     }
-
-    [data-testid="stMetricLabel"] {
+    [data-testid='stMetricLabel'] {
         font-size: 9pt !important;
         color: #444 !important;
     }
-
-    /* Charts */
-    [data-testid="stPlotlyChart"],
-    [data-testid="stVegaLiteChart"],
+    [data-testid='stPlotlyChart'],
+    [data-testid='stVegaLiteChart'],
     iframe {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         max-width: 100% !important;
     }
-
     @page {
         margin: 1.5cm;
         size: A4 landscape;
     }
-
-    /* White background for print */
-    body, .main, [data-testid="stAppViewContainer"] {
+    body, .main, [data-testid='stAppViewContainer'] {
         background-color: white !important;
         color: black !important;
     }
@@ -1954,6 +1940,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

@@ -36,6 +36,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+import streamlit as st
+
 st.markdown("""
 <style>
 @media print {
@@ -1940,6 +1942,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

@@ -39,20 +39,7 @@ import numpy as np
 import streamlit as st
 
 st.markdown("""
-<script>
-function printAll() {
-    // Click each tab to force chart rendering
-    const tabs = document.querySelectorAll('[data-testid="stTabs"] button[role="tab"]');
-    let delay = 0;
-    tabs.forEach(function(tab) {
-        setTimeout(function() { tab.click(); }, delay);
-        delay += 500; // wait 500ms per tab for chart to render
-    });
-    // Then print after all tabs have been visited
-    setTimeout(function() { window.print(); }, delay + 500);
-}
-</script>
-<button onclick="printAll()" style="
+<button id="print-btn" style="
     background-color: #e63946;
     color: white;
     border: none;
@@ -62,6 +49,18 @@ function printAll() {
     cursor: pointer;
     margin: 10px 0;
 ">🖨️ Drucken (alle Tabs)</button>
+
+<script>
+document.getElementById('print-btn').addEventListener('click', function() {
+    const tabs = document.querySelectorAll('[data-testid="stTabs"] button[role="tab"]');
+    let delay = 0;
+    tabs.forEach(function(tab) {
+        setTimeout(function() { tab.click(); }, delay);
+        delay += 600;
+    });
+    setTimeout(function() { window.print(); }, delay + 800);
+});
+</script>
 """, unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 # SCENARIO SETTINGS (ADJUST HERE)
@@ -1910,6 +1909,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

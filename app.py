@@ -31,88 +31,86 @@ from typing import Dict, Optional
 
 from matplotlib.ticker import FuncFormatter
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_pdf import PdfPages
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
 import streamlit as st
-import streamlit.components.v1 as components
+import io
 
-components.html("""
-<button id="print-btn" style="
-    background-color: #e63946;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 14pt;
-    border-radius: 6px;
-    cursor: pointer;
-">🖨️ Drucken (alle Tabs)</button>
+st.markdown("""
+<style>
+@media print {
+    /* Hide Streamlit UI chrome */
+    [data-testid="stSidebar"],
+    header,
+    footer,
+    .stDeployButton,
+    #MainMenu {
+        display: none !important;
+    }
 
-<script>
-document.getElementById('print-btn').addEventListener('click', function() {
-    const doc = window.parent.document;
-    const tabs = doc.querySelectorAll('[data-testid="stTabs"] button[role="tab"]');
+    .main .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
 
-    // Step 1: Click through every tab to force Plotly to render each chart
-    let delay = 0;
-    tabs.forEach(function(tab) {
-        setTimeout(function() { tab.click(); }, delay);
-        delay += 2000;
-    });
+    * {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
 
-    // Step 2: After all tabs rendered, forcibly show ALL tab panels
-    setTimeout(function() {
+    /* FIX: Keep metric columns visible in a row */
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 1rem !important;
+    }
 
-        // Hide sidebar
-        const sidebar = doc.querySelector('[data-testid="stSidebar"]');
-        if (sidebar) sidebar.style.setProperty('display', 'none', 'important');
+    [data-testid="column"] {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        display: block !important;
+        min-width: 120px !important;
+    }
 
-        // Hide tab bar
-        const tabBars = doc.querySelectorAll('[data-testid="stTabs"] [role="tablist"]');
-        tabBars.forEach(el => el.style.setProperty('display', 'none', 'important'));
+    /* Metric values: ensure full display */
+    [data-testid="stMetricValue"] {
+        font-size: 16pt !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+    }
 
-        // Force ALL tab content panels visible
-        const allTabPanels = doc.querySelectorAll('[data-testid="stTabContent"]');
-        allTabPanels.forEach(function(panel) {
-            panel.style.setProperty('display', 'block', 'important');
-            panel.style.setProperty('visibility', 'visible', 'important');
-            panel.style.setProperty('opacity', '1', 'important');
-            panel.style.setProperty('height', 'auto', 'important');
-            panel.style.setProperty('overflow', 'visible', 'important');
-            // Also un-hide any children
-            panel.querySelectorAll('*').forEach(function(child) {
-                if (getComputedStyle(child).display === 'none') {
-                    child.style.setProperty('display', 'block', 'important');
-                }
-            });
-        });
+    [data-testid="stMetricLabel"] {
+        font-size: 9pt !important;
+        color: #444 !important;
+    }
 
-        // Step 3: Print
-        setTimeout(function() {
-            window.parent.print();
+    /* Charts */
+    [data-testid="stPlotlyChart"],
+    [data-testid="stVegaLiteChart"],
+    iframe {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        max-width: 100% !important;
+    }
 
-            // Step 4: Restore everything after print
-            setTimeout(function() {
-                if (sidebar) sidebar.style.display = '';
-                tabBars.forEach(el => el.style.display = '');
-                allTabPanels.forEach(function(panel) {
-                    panel.style.display = '';
-                    panel.style.visibility = '';
-                    panel.style.opacity = '';
-                    panel.style.height = '';
-                    panel.style.overflow = '';
-                });
-                // Re-click first tab to restore normal view
-                if (tabs.length > 0) tabs[0].click();
-            }, 3000);
-        }, 1500);
+    @page {
+        margin: 1.5cm;
+        size: A4 landscape;
+    }
 
-    }, delay + 500);
-});
-</script>
-""", height=60)
+    /* White background for print */
+    body, .main, [data-testid="stAppViewContainer"] {
+        background-color: white !important;
+        color: black !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 # SCENARIO SETTINGS (ADJUST HERE)
 # ---------------------------------------------------------------------------
@@ -1941,6 +1939,96 @@ def run_app() -> None:
                     mime="text/csv",
                 )
 
+
+            st.subheader("PDF Export")
+            
+            if st.button("📄 Alle Charts als PDF exportieren"):
+                with st.spinner("PDF wird erstellt..."):
+                    
+                    # Regenerate all figures fresh (don't use closed ones)
+                    extra_fan = r["tax_str"] + f", {r['n_cohorts']} Läufe"
+                    
+                    title_fan = format_chart_title(
+                        "Historische Bandbreite", r["port_cfg_net"], r["sim_cfg"], extra=extra_fan
+                    )
+                    fig_pdf_fan = plot_fan_chart(r["matrix"], title=title_fan)
+            
+                    title_paths = format_chart_title(
+                        "Historische Vermögenspfade", r["port_cfg_net"], r["sim_cfg"], extra=extra_fan
+                    )
+                    fig_pdf_paths = plot_all_wealth_paths(r["matrix"], title=title_paths)
+            
+                    title_cum = format_chart_title(
+                        "Kumulierte Entnahmen", r["port_cfg_net"], r["sim_cfg"], extra=r["tax_str"]
+                    )
+                    infl_for_plot = r["inflation_series"] if r["port_cfg_net"].use_inflation else None
+                    fig_pdf_cum = plot_cumulative_withdrawals(
+                        r["path_median"], r["sim_cfg"], title_cum,
+                        inflation=infl_for_plot, real_mode=r["port_cfg_net"].use_inflation,
+                    )
+            
+                    fig_pdf_success = plot_success_curve(
+                        r["portfolio_returns_gross"], r["portfolio_returns_net"],
+                        r["sim_cfg"], r["port_cfg_net"],
+                        rate_min=r["rate_min"], rate_max=r["rate_max"], rate_step=r["rate_step"],
+                        tax_rate=r["tax_rate"], show_gross_line=r["show_gross_line"],
+                    )
+            
+                    extra_hist = r["tax_str"]
+                    n_cohorts_tw = r["term_wealth"].attrs.get("n_cohorts", None)
+                    if n_cohorts_tw:
+                        extra_hist += f", {n_cohorts_tw} Läufe"
+                    title_hist = format_chart_title(
+                        f"Verteilung des Restvermögens nach {r['sim_cfg'].horizon_years} Jahren",
+                        r["port_cfg_net"], r["sim_cfg"], extra=extra_hist,
+                    )
+                    fig_pdf_hist = plot_terminal_wealth_hist(
+                        r["term_wealth"], title=title_hist, sim_cfg=r["sim_cfg"]
+                    )
+            
+                    # Build PDF in memory
+                    pdf_buf = io.BytesIO()
+                    with PdfPages(pdf_buf) as pdf:
+                        d = pdf.infodict()
+                        d['Title'] = 'Verrentungs-Simulation'
+            
+                        # Cover info page
+                        fig_cover, ax_cover = plt.subplots(figsize=FIGSIZE_16_9)
+                        ax_cover.axis("off")
+                        info_lines = [
+                            "Verrentungs-Simulation: MSCI World, REXP und Gold",
+                            "",
+                            f"Startvermögen:       {_euro_str(r['sim_cfg'].initial_wealth)}",
+                            f"Entnahmesatz:        {r['sim_cfg'].annual_withdrawal_rate*100:.1f} % p.a.",
+                            f"Horizont:            {r['sim_cfg'].horizon_years} Jahre",
+                            f"Portfolio-Mix:       {format_weights(r['port_cfg_net'].weights)}",
+                            f"Historische Läufe:   {r['n_cohorts']}",
+                            f"Erfolgsquote:        {r['erfolg_aktuell']*100:.1f} %",
+                            f"Steuer:              {r['tax_str']}",
+                        ]
+                        ax_cover.text(
+                            0.05, 0.95, "\\n".join(info_lines),
+                            transform=ax_cover.transAxes,
+                            fontsize=14, verticalalignment='top',
+                            fontfamily='monospace',
+                        )
+                        pdf.savefig(fig_cover, bbox_inches='tight')
+                        plt.close(fig_cover)
+            
+                        # All charts
+                        for fig in [fig_pdf_fan, fig_pdf_paths, fig_pdf_cum, fig_pdf_success, fig_pdf_hist]:
+                            pdf.savefig(fig, bbox_inches='tight')
+                            plt.close(fig)
+            
+                    pdf_buf.seek(0)
+            
+                st.download_button(
+                    label="⬇️ PDF herunterladen",
+                    data=pdf_buf,
+                    file_name="Verrentungs_Simulation.pdf",
+                    mime="application/pdf",
+                )
+
             with st.expander("Optional: Verteilung des Restvermögens anzeigen", expanded=False):
                 extra_hist = r["tax_str"]
                 n_cohorts_tw = r["term_wealth"].attrs.get("n_cohorts", None)
@@ -1960,8 +2048,6 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
-
-
 
 
 

@@ -37,7 +37,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import streamlit as st
-
 import streamlit.components.v1 as components
 
 components.html("""
@@ -53,14 +52,33 @@ components.html("""
 
 <script>
 document.getElementById('print-btn').addEventListener('click', function() {
-    const parent = window.parent;
-    const tabs = parent.document.querySelectorAll('[data-testid="stTabs"] button[role="tab"]');
+    const doc = window.parent.document;
+
+    // Hide sidebar before printing
+    const sidebar = doc.querySelector('[data-testid="stSidebar"]');
+    if (sidebar) sidebar.style.display = 'none';
+
+    const tabs = doc.querySelectorAll('[data-testid="stTabs"] button[role="tab"]');
     let delay = 0;
+
     tabs.forEach(function(tab) {
         setTimeout(function() { tab.click(); }, delay);
-        delay += 600;
+        delay += 1500;  // 1.5s per tab for Plotly to render
     });
-    setTimeout(function() { parent.print(); }, delay + 800);
+
+    // Go back to first tab
+    setTimeout(function() {
+        if (tabs.length > 0) tabs[0].click();
+    }, delay);
+
+    // Print after all tabs visited
+    setTimeout(function() {
+        window.parent.print();
+        // Restore sidebar after print dialog closes
+        setTimeout(function() {
+            if (sidebar) sidebar.style.display = '';
+        }, 2000);
+    }, delay + 2000);
 });
 </script>
 """, height=60)
@@ -1911,6 +1929,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

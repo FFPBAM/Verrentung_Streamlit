@@ -36,8 +36,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-import streamlit as st
-
 st.markdown("""
 <style>
 @media print {
@@ -50,35 +48,44 @@ st.markdown("""
         display: none !important;
     }
 
-    /* Remove main content padding/margin */
     .main .block-container {
         padding: 0 !important;
         max-width: 100% !important;
     }
 
-    /* Prevent numbers/text from being cut off */
     * {
         overflow: visible !important;
         white-space: normal !important;
     }
 
-    /* Ensure metric values display fully */
+    /* FIX: Keep metric columns visible in a row */
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 1rem !important;
+    }
+
+    [data-testid="column"] {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        display: block !important;
+        min-width: 120px !important;
+    }
+
+    /* Metric values: ensure full display */
     [data-testid="stMetricValue"] {
-        font-size: 18pt !important;
+        font-size: 16pt !important;
         white-space: nowrap !important;
+        overflow: visible !important;
     }
 
     [data-testid="stMetricLabel"] {
-        font-size: 10pt !important;
+        font-size: 9pt !important;
+        color: #444 !important;
     }
 
-    /* Force full-width layout */
-    .stColumns, [data-testid="column"] {
-        width: 100% !important;
-        display: block !important;
-    }
-
-    /* Charts: prevent page breaks inside */
+    /* Charts */
     [data-testid="stPlotlyChart"],
     [data-testid="stVegaLiteChart"],
     iframe {
@@ -87,13 +94,12 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* Page margins */
     @page {
         margin: 1.5cm;
         size: A4 landscape;
     }
 
-    /* Dark background → white for print */
+    /* White background for print */
     body, .main, [data-testid="stAppViewContainer"] {
         background-color: white !important;
         color: black !important;
@@ -1241,7 +1247,7 @@ def run_app() -> None:
     st.set_page_config(page_title="Verrentungs-Simulation (MSCI World + REXP + Gold)", layout="wide")
     st.title("Verrentungs-Simulation: MSCI World, REXP und Gold")
     st.markdown(
-        "Diese Anwendung ist für Beratungsgespräche gedacht. "
+        "Diese Anwendung ist für Beratungsgespräche gedacht. Sie dient der Visualisierung Ihrer Möglichkeiten im Beratungsgespräch und ist als Ergänzung zu unserer Broschüre konzipiert. Bitte beachten Sie, dass alle rechtsverbindlichen Details sowie die wichtigen Risikohinweise vollständig in der begleitenden Broschüre enthalten sind."
         "Änderungen werden erst nach Klick auf „Berechnung starten“ übernommen."
     )
 
@@ -1947,6 +1953,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

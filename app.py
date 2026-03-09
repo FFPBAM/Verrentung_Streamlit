@@ -92,6 +92,25 @@ st.markdown("""
         background-color: white !important;
         color: black !important;
     }
+       /* Show ALL tab contents when printing */
+    [data-testid='stTabContent'] {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Make each tab section start on a new page */
+    [data-testid='stTabContent'] + [data-testid='stTabContent'] {
+        page-break-before: always !important;
+        break-before: page !important;
+    }
+
+    /* Hide the tab bar itself (optional - remove if you want tab labels printed) */
+    [data-testid='stTabs'] > div:first-child {
+        display: none !important;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1942,6 +1961,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

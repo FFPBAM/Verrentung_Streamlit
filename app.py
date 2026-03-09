@@ -100,7 +100,7 @@ st.markdown("""
 
     @page {
         margin: 1.5cm;
-        size: A4 landscape;
+        size: A4;
     }
 
     /* White background for print */
@@ -2048,6 +2048,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

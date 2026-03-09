@@ -1550,29 +1550,22 @@ def run_app() -> None:
     # Wenn die Summe < 100 % ist, wird der Rest automatisch als Liquidität ergänzt.
     # -----------------------------------------------------------------------
 
-    st.session_state["w_msci_pct"] = st.sidebar.slider(
-        "MSCI World (%)",
-        0.0,
-        100.0,
-        float(st.session_state["w_msci_pct"]),
-        1.0,
-    )
+st.sidebar.subheader("Portfolio")
 
-    st.session_state["w_rexp_pct"] = st.sidebar.slider(
-        "REXP (%)",
-        0.0,
-        100.0,
-        float(st.session_state["w_rexp_pct"]),
-        1.0,
-    )
+st.session_state["w_msci_pct"] = st.sidebar.number_input(
+    "MSCI World (%)", min_value=0.0, max_value=100.0,
+    value=float(st.session_state["w_msci_pct"]), step=1.0, format="%.1f"
+)
 
-    st.session_state["w_gold_pct"] = st.sidebar.slider(
-        "Gold (%)",
-        0.0,
-        100.0,
-        float(st.session_state["w_gold_pct"]),
-        1.0,
-    )
+st.session_state["w_rexp_pct"] = st.sidebar.number_input(
+    "REXP (%)", min_value=0.0, max_value=100.0,
+    value=float(st.session_state["w_rexp_pct"]), step=1.0, format="%.1f"
+)
+
+st.session_state["w_gold_pct"] = st.sidebar.number_input(
+    "Gold (%)", min_value=0.0, max_value=100.0,
+    value=float(st.session_state["w_gold_pct"]), step=1.0, format="%.1f"
+)
 
     sum_weights_pct = float(
         st.session_state["w_msci_pct"]
@@ -2066,6 +2059,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

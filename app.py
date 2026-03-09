@@ -39,80 +39,29 @@ import numpy as np
 import streamlit as st
 
 st.markdown("""
-<style>
-@media print {
-    [data-testid='stSidebar'],
-    header,
-    footer,
-    .stDeployButton,
-    #MainMenu {
-        display: none !important;
-    }
-    .main .block-container {
-        padding: 0 !important;
-        max-width: 100% !important;
-    }
-    * {
-        overflow: visible !important;
-        white-space: normal !important;
-    }
-    [data-testid='stHorizontalBlock'] {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        gap: 1rem !important;
-    }
-    [data-testid='column'] {
-        flex: 1 1 auto !important;
-        width: auto !important;
-        display: block !important;
-        min-width: 120px !important;
-    }
-    [data-testid='stMetricValue'] {
-        font-size: 16pt !important;
-        white-space: nowrap !important;
-        overflow: visible !important;
-    }
-    [data-testid='stMetricLabel'] {
-        font-size: 9pt !important;
-        color: #444 !important;
-    }
-    [data-testid='stPlotlyChart'],
-    [data-testid='stVegaLiteChart'],
-    iframe {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-        max-width: 100% !important;
-    }
-    @page {
-        margin: 1.5cm;
-        size: A4 landscape;
-    }
-    body, .main, [data-testid='stAppViewContainer'] {
-        background-color: white !important;
-        color: black !important;
-    }
-       /* Show ALL tab contents when printing */
-    [data-testid='stTabContent'] {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        height: auto !important;
-        overflow: visible !important;
-    }
-
-    /* Make each tab section start on a new page */
-    [data-testid='stTabContent'] + [data-testid='stTabContent'] {
-        page-break-before: always !important;
-        break-before: page !important;
-    }
-
-    /* Hide the tab bar itself (optional - remove if you want tab labels printed) */
-    [data-testid='stTabs'] > div:first-child {
-        display: none !important;
-    }
+<script>
+function printAll() {
+    // Click each tab to force chart rendering
+    const tabs = document.querySelectorAll('[data-testid="stTabs"] button[role="tab"]');
+    let delay = 0;
+    tabs.forEach(function(tab) {
+        setTimeout(function() { tab.click(); }, delay);
+        delay += 500; // wait 500ms per tab for chart to render
+    });
+    // Then print after all tabs have been visited
+    setTimeout(function() { window.print(); }, delay + 500);
 }
-</style>
+</script>
+<button onclick="printAll()" style="
+    background-color: #e63946;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14pt;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 10px 0;
+">🖨️ Drucken (alle Tabs)</button>
 """, unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 # SCENARIO SETTINGS (ADJUST HERE)
@@ -1961,6 +1910,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

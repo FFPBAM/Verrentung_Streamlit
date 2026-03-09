@@ -1237,7 +1237,7 @@ def run_app() -> None:
     st.markdown(
         "Diese Anwendung ist für Beratungsgespräe gedacht. "
         "Sie dient der Visualisierung Ihrer Möglichkeiten im Beratungsgespräch und ist als Ergänzung zu unserer Broschüre konzipiert. Bitte beachten Sie, dass alle rechtsverbindlichen Details sowie die wichtigen Risikohinweise vollständig in der begleitenden Broschüre enthalten sind. "
-        "Änderungen werden erst nach Klick auf "Berechnung starten" übernommen."
+        "Änderungen werden erst nach Klick auf „Berechnung starten“ übernommen."
     )
 
     default_file_exists = DATA_FILE.is_file()
@@ -1942,6 +1942,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

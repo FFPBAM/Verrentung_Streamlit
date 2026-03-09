@@ -53,32 +53,63 @@ components.html("""
 <script>
 document.getElementById('print-btn').addEventListener('click', function() {
     const doc = window.parent.document;
-
-    // Hide sidebar before printing
-    const sidebar = doc.querySelector('[data-testid="stSidebar"]');
-    if (sidebar) sidebar.style.display = 'none';
-
     const tabs = doc.querySelectorAll('[data-testid="stTabs"] button[role="tab"]');
-    let delay = 0;
 
+    // Step 1: Click through every tab to force Plotly to render each chart
+    let delay = 0;
     tabs.forEach(function(tab) {
         setTimeout(function() { tab.click(); }, delay);
-        delay += 1500;  // 1.5s per tab for Plotly to render
+        delay += 2000;
     });
 
-    // Go back to first tab
+    // Step 2: After all tabs rendered, forcibly show ALL tab panels
     setTimeout(function() {
-        if (tabs.length > 0) tabs[0].click();
-    }, delay);
 
-    // Print after all tabs visited
-    setTimeout(function() {
-        window.parent.print();
-        // Restore sidebar after print dialog closes
+        // Hide sidebar
+        const sidebar = doc.querySelector('[data-testid="stSidebar"]');
+        if (sidebar) sidebar.style.setProperty('display', 'none', 'important');
+
+        // Hide tab bar
+        const tabBars = doc.querySelectorAll('[data-testid="stTabs"] [role="tablist"]');
+        tabBars.forEach(el => el.style.setProperty('display', 'none', 'important'));
+
+        // Force ALL tab content panels visible
+        const allTabPanels = doc.querySelectorAll('[data-testid="stTabContent"]');
+        allTabPanels.forEach(function(panel) {
+            panel.style.setProperty('display', 'block', 'important');
+            panel.style.setProperty('visibility', 'visible', 'important');
+            panel.style.setProperty('opacity', '1', 'important');
+            panel.style.setProperty('height', 'auto', 'important');
+            panel.style.setProperty('overflow', 'visible', 'important');
+            // Also un-hide any children
+            panel.querySelectorAll('*').forEach(function(child) {
+                if (getComputedStyle(child).display === 'none') {
+                    child.style.setProperty('display', 'block', 'important');
+                }
+            });
+        });
+
+        // Step 3: Print
         setTimeout(function() {
-            if (sidebar) sidebar.style.display = '';
-        }, 2000);
-    }, delay + 2000);
+            window.parent.print();
+
+            // Step 4: Restore everything after print
+            setTimeout(function() {
+                if (sidebar) sidebar.style.display = '';
+                tabBars.forEach(el => el.style.display = '');
+                allTabPanels.forEach(function(panel) {
+                    panel.style.display = '';
+                    panel.style.visibility = '';
+                    panel.style.opacity = '';
+                    panel.style.height = '';
+                    panel.style.overflow = '';
+                });
+                // Re-click first tab to restore normal view
+                if (tabs.length > 0) tabs[0].click();
+            }, 3000);
+        }, 1500);
+
+    }, delay + 500);
 });
 </script>
 """, height=60)
@@ -1929,6 +1960,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

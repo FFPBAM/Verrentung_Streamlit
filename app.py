@@ -1620,12 +1620,12 @@ def run_app() -> None:
         index=0 if st.session_state["use_inflation"] else 1,
     ) == "Inflationsbereinigt (real)"
 
-    st.session_state["withdrawal_rate_pct"] = st.sidebar.slider(
+    st.session_state["withdrawal_rate_pct"] = st.sidebar.number_input(
         "Entnahmesatz p.a. (%)",
-        1.0,
-        10.0,
-        float(st.session_state["withdrawal_rate_pct"]),
-        0.1,
+        min_value=0.0,
+        max_value=10.0,
+        value=float(st.session_state["withdrawal_rate_pct"]),
+        step=0.1,
         format="%.1f",
     )
 
@@ -1638,12 +1638,12 @@ def run_app() -> None:
         format="%.0f",
     )
 
-    st.session_state["horizon_years"] = st.sidebar.slider(
+    st.session_state["horizon_years"] = st.sidebar.number_input(
         "Horizont (Jahre)",
-        5,
-        60,
-        int(st.session_state["horizon_years"]),
-        1,
+        min_value=5,
+        max_value=60,
+        value=int(st.session_state["horizon_years"]),
+        step=1,
     )
 
     if st.session_state["erweitert"]:
@@ -2059,6 +2059,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

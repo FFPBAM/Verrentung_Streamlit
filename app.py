@@ -1552,20 +1552,20 @@ def run_app() -> None:
 
 st.sidebar.subheader("Portfolio")
 
-st.session_state["w_msci_pct"] = st.sidebar.number_input(
-    "MSCI World (%)", min_value=0.0, max_value=100.0,
-    value=float(st.session_state["w_msci_pct"]), step=1.0, format="%.1f"
-)
+    st.session_state["w_msci_pct"] = st.sidebar.number_input(
+        "MSCI World (%)", min_value=0.0, max_value=100.0,
+        value=float(st.session_state["w_msci_pct"]), step=1.0, format="%.1f"
+    )
 
-st.session_state["w_rexp_pct"] = st.sidebar.number_input(
-    "REXP (%)", min_value=0.0, max_value=100.0,
-    value=float(st.session_state["w_rexp_pct"]), step=1.0, format="%.1f"
-)
+    st.session_state["w_rexp_pct"] = st.sidebar.number_input(
+        "REXP (%)", min_value=0.0, max_value=100.0,
+        value=float(st.session_state["w_rexp_pct"]), step=1.0, format="%.1f"
+    )
 
-st.session_state["w_gold_pct"] = st.sidebar.number_input(
-    "Gold (%)", min_value=0.0, max_value=100.0,
-    value=float(st.session_state["w_gold_pct"]), step=1.0, format="%.1f"
-)
+    st.session_state["w_gold_pct"] = st.sidebar.number_input(
+        "Gold (%)", min_value=0.0, max_value=100.0,
+        value=float(st.session_state["w_gold_pct"]), step=1.0, format="%.1f"
+    )
 
     sum_weights_pct = float(
         st.session_state["w_msci_pct"]
@@ -2059,6 +2059,7 @@ st.session_state["w_gold_pct"] = st.sidebar.number_input(
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

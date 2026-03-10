@@ -1340,7 +1340,7 @@ def run_app() -> None:
         st.session_state.setdefault("tax_rate_pct", float(CAPITAL_GAINS_TAX_RATE * 100.0))
 
         st.session_state.setdefault("use_inflation", USE_INFLATION)
-        st.session_state.setdefault("withdrawal_rate_pct", float(WITHDRAWAL_RATE * 100.0))
+        st.session_state.setdefault("withdrawal_eur", float(WITHDRAWAL_RATE * INITIAL_WEALTH))
         st.session_state.setdefault("initial_wealth", float(INITIAL_WEALTH))
         st.session_state.setdefault("horizon_years", int(HORIZON_YEARS))
 
@@ -1375,7 +1375,7 @@ def run_app() -> None:
             "apply_tax",
             "tax_rate_pct",
             "use_inflation",
-            "withdrawal_rate_pct",
+            "withdrawal_eur",
             "initial_wealth",
             "horizon_years",
             "rate_min_pct",
@@ -1468,7 +1468,7 @@ def run_app() -> None:
             bool(st.session_state.get("apply_tax")),
             float(st.session_state.get("tax_rate_pct")),
             bool(st.session_state.get("use_inflation")),
-            float(st.session_state.get("withdrawal_rate_pct")),
+            float(st.session_state.get("withdrawal_eur")),
             float(st.session_state.get("initial_wealth")),
             int(st.session_state.get("horizon_years")),
             float(st.session_state.get("rate_min_pct")),
@@ -1620,15 +1620,6 @@ def run_app() -> None:
         index=0 if st.session_state["use_inflation"] else 1,
     ) == "Inflationsbereinigt (real)"
 
-    st.session_state["withdrawal_rate_pct"] = st.sidebar.number_input(
-        "Entnahmesatz p.a. (%)",
-        min_value=0.0,
-        max_value=10.0,
-        value=float(st.session_state["withdrawal_rate_pct"]),
-        step=0.1,
-        format="%.1f",
-    )
-
     st.session_state["initial_wealth"] = st.sidebar.number_input(
         "Startvermögen (€)",
         min_value=0.0,
@@ -1637,6 +1628,23 @@ def run_app() -> None:
         step=10_000.0,
         format="%.0f",
     )
+
+    # Entnahme in Euro – wird in Entnahmesatz umgerechnet
+    st.session_state["withdrawal_eur"] = st.sidebar.number_input(
+        "Entnahme p.a. (€)",
+        min_value=0.0,
+        max_value=float(st.session_state["initial_wealth"]) if st.session_state["initial_wealth"] > 0 else 10_000_000.0,
+        value=float(st.session_state["withdrawal_eur"]),
+        step=1_000.0,
+        format="%.0f",
+        help="Jährlicher Entnahmebetrag in Euro. Wird automatisch ins Verhältnis zum Startvermögen gesetzt.",
+    )
+
+    # Abgeleiteter Entnahmesatz (nur zur Information)
+    _initial_wealth_for_rate = float(st.session_state["initial_wealth"])
+    _withdrawal_eur_val = float(st.session_state["withdrawal_eur"])
+    _derived_rate_pct = (_withdrawal_eur_val / _initial_wealth_for_rate * 100.0) if _initial_wealth_for_rate > 0 else 0.0
+    st.sidebar.caption(f"→ Entspricht einem Entnahmesatz von **{_derived_rate_pct:.2f} % p.a.**")
 
     st.session_state["horizon_years"] = st.sidebar.number_input(
         "Horizont (Jahre)",
@@ -1716,7 +1724,10 @@ def run_app() -> None:
 
         annual_fee = float(st.session_state["annual_fee_pct"] / 100.0) if st.session_state["apply_fees"] else 0.0
         tax_rate = float(st.session_state["tax_rate_pct"] / 100.0) if st.session_state["apply_tax"] else 0.0
-        withdrawal_rate = float(st.session_state["withdrawal_rate_pct"] / 100.0)
+
+        _initial_wealth_run = float(st.session_state["initial_wealth"])
+        _withdrawal_eur_run = float(st.session_state["withdrawal_eur"])
+        withdrawal_rate = (_withdrawal_eur_run / _initial_wealth_run) if _initial_wealth_run > 0 else 0.0
 
         sim_cfg = SimulationConfig(
             annual_withdrawal_rate=withdrawal_rate,
@@ -1801,6 +1812,7 @@ def run_app() -> None:
                 "path_best": path_best,
                 "path_worst": path_worst,
                 "erfolg_aktuell": erfolg_aktuell,
+                "withdrawal_eur": _withdrawal_eur_run,
                 "rate_min": rate_min,
                 "rate_max": rate_max,
                 "rate_step": rate_step,
@@ -1820,14 +1832,16 @@ def run_app() -> None:
 
         st.subheader("Übersicht")
 
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             st.metric("Startvermögen", _euro_str(r["sim_cfg"].initial_wealth))
         with col2:
-            st.metric("Entnahmesatz", f"{r['sim_cfg'].annual_withdrawal_rate*100:.1f} % p.a.")
+            st.metric("Entnahme p.a.", _euro_str(r["withdrawal_eur"]))
         with col3:
-            st.metric("Horizont", f"{r['sim_cfg'].horizon_years} Jahre")
+            st.metric("Entnahmesatz", f"{r['sim_cfg'].annual_withdrawal_rate*100:.2f} % p.a.")
         with col4:
+            st.metric("Horizont", f"{r['sim_cfg'].horizon_years} Jahre")
+        with col5:
             st.metric("Historische Läufe", f"{r['n_cohorts']}")
 
         st.markdown(f"Historische Erfolgsquote für den gewählten Entnahmesatz: **{r['erfolg_aktuell']*100:.1f} %**")
@@ -2059,6 +2073,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

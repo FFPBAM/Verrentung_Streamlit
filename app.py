@@ -1838,7 +1838,7 @@ def run_app() -> None:
         with col2:
             st.metric("Entnahme p.a.", _euro_str(r["withdrawal_eur"]))
         with col3:
-            st.metric("Entnahmesatz", f"{r['sim_cfg'].annual_withdrawal_rate*100:.2f} % p.a.")
+            st.metric("Entnahmesatz p.a.", f"{r['sim_cfg'].annual_withdrawal_rate*100:.2f} %")
         with col4:
             st.metric("Horizont", f"{r['sim_cfg'].horizon_years} Jahre")
         with col5:
@@ -2073,6 +2073,7 @@ def run_app() -> None:
 
 if __name__ == "__main__":
     run_app()
+
 
 
 

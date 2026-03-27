@@ -1271,7 +1271,7 @@ def run_app() -> None:
     st.markdown(
         "Diese Anwendung ist für Beratungsgespräe gedacht. "
         "Sie dient der Visualisierung Ihrer Möglichkeiten im Beratungsgespräch und ist als Ergänzung zu unserer Broschüre konzipiert. Bitte beachten Sie, dass alle rechtsverbindlichen Details sowie die wichtigen Risikohinweise vollständig in der begleitenden Broschüre enthalten sind. "
-        "Änderungen werden erst nach Klick auf „Berechnung starten“ übernommen."
+        'Änderungen werden erst nach Klick auf „Berechnung starten" übernommen.'
     )
 
     default_file_exists = DATA_FILE.is_file()
@@ -1340,7 +1340,7 @@ def run_app() -> None:
         st.session_state.setdefault("tax_rate_pct", float(CAPITAL_GAINS_TAX_RATE * 100.0))
 
         st.session_state.setdefault("use_inflation", USE_INFLATION)
-        st.session_state.setdefault("withdrawal_rate_pct", float(WITHDRAWAL_RATE * 100.0))
+        st.session_state.setdefault("withdrawal_eur", float(WITHDRAWAL_RATE * INITIAL_WEALTH))
         st.session_state.setdefault("initial_wealth", float(INITIAL_WEALTH))
         st.session_state.setdefault("horizon_years", int(HORIZON_YEARS))
 
@@ -1375,7 +1375,7 @@ def run_app() -> None:
             "apply_tax",
             "tax_rate_pct",
             "use_inflation",
-            "withdrawal_rate_pct",
+            "withdrawal_eur",
             "initial_wealth",
             "horizon_years",
             "rate_min_pct",
@@ -1439,7 +1439,7 @@ def run_app() -> None:
 
     def _current_config_fingerprint() -> tuple:
         """
-        Erzeugt einen „Fingerabdruck“ der aktuellen Einstellungen.
+        Erzeugt einen „Fingerabdruck" der aktuellen Einstellungen.
         Damit können wir erkennen, ob sich etwas geändert hat, ohne sofort neu zu rechnen.
         """
         uploaded = st.session_state.get("uploaded_file", None)
@@ -1468,7 +1468,7 @@ def run_app() -> None:
             bool(st.session_state.get("apply_tax")),
             float(st.session_state.get("tax_rate_pct")),
             bool(st.session_state.get("use_inflation")),
-            float(st.session_state.get("withdrawal_rate_pct")),
+            float(st.session_state.get("withdrawal_eur")),
             float(st.session_state.get("initial_wealth")),
             int(st.session_state.get("horizon_years")),
             float(st.session_state.get("rate_min_pct")),
@@ -1620,15 +1620,6 @@ def run_app() -> None:
         index=0 if st.session_state["use_inflation"] else 1,
     ) == "Inflationsbereinigt (real)"
 
-    st.session_state["withdrawal_rate_pct"] = st.sidebar.slider(
-        "Entnahmesatz p.a. (%)",
-        1.0,
-        10.0,
-        float(st.session_state["withdrawal_rate_pct"]),
-        0.1,
-        format="%.1f",
-    )
-
     st.session_state["initial_wealth"] = st.sidebar.number_input(
         "Startvermögen (€)",
         min_value=0.0,
@@ -1638,12 +1629,29 @@ def run_app() -> None:
         format="%.0f",
     )
 
-    st.session_state["horizon_years"] = st.sidebar.slider(
+    # Entnahme in Euro – wird in Entnahmesatz umgerechnet
+    st.session_state["withdrawal_eur"] = st.sidebar.number_input(
+        "Entnahme p.a. (€)",
+        min_value=0.0,
+        max_value=float(st.session_state["initial_wealth"]) if st.session_state["initial_wealth"] > 0 else 10_000_000.0,
+        value=float(st.session_state["withdrawal_eur"]),
+        step=1_000.0,
+        format="%.0f",
+        help="Jährlicher Entnahmebetrag in Euro. Wird automatisch ins Verhältnis zum Startvermögen gesetzt.",
+    )
+
+    # Abgeleiteter Entnahmesatz (nur zur Information)
+    _initial_wealth_for_rate = float(st.session_state["initial_wealth"])
+    _withdrawal_eur_val = float(st.session_state["withdrawal_eur"])
+    _derived_rate_pct = (_withdrawal_eur_val / _initial_wealth_for_rate * 100.0) if _initial_wealth_for_rate > 0 else 0.0
+    st.sidebar.caption(f"→ Entspricht einem Entnahmesatz von **{_derived_rate_pct:.2f} % p.a.**")
+
+    st.session_state["horizon_years"] = st.sidebar.number_input(
         "Horizont (Jahre)",
-        5,
-        60,
-        int(st.session_state["horizon_years"]),
-        1,
+        min_value=5,
+        max_value=60,
+        value=int(st.session_state["horizon_years"]),
+        step=1,
     )
 
     if st.session_state["erweitert"]:
@@ -1677,10 +1685,10 @@ def run_app() -> None:
     current_fp = _current_config_fingerprint()
 
     if st.session_state["results"] is None:
-        st.info("Bitte Einstellungen links wählen und dann „Berechnung starten“ klicken.")
+        st.info('Bitte Einstellungen links wählen und dann „Berechnung starten" klicken.')
     else:
         if st.session_state.get("last_config_fingerprint") != current_fp:
-            st.warning("Einstellungen wurden geändert. Bitte „Berechnung starten“ klicken, um die Ergebnisse zu aktualisieren.")
+            st.warning('Einstellungen wurden geändert. Bitte „Berechnung starten" klicken, um die Ergebnisse zu aktualisieren.')
 
     if run_clicked:
         sum_weights_pct_run = float(
@@ -1716,7 +1724,10 @@ def run_app() -> None:
 
         annual_fee = float(st.session_state["annual_fee_pct"] / 100.0) if st.session_state["apply_fees"] else 0.0
         tax_rate = float(st.session_state["tax_rate_pct"] / 100.0) if st.session_state["apply_tax"] else 0.0
-        withdrawal_rate = float(st.session_state["withdrawal_rate_pct"] / 100.0)
+
+        _initial_wealth_run = float(st.session_state["initial_wealth"])
+        _withdrawal_eur_run = float(st.session_state["withdrawal_eur"])
+        withdrawal_rate = (_withdrawal_eur_run / _initial_wealth_run) if _initial_wealth_run > 0 else 0.0
 
         sim_cfg = SimulationConfig(
             annual_withdrawal_rate=withdrawal_rate,
@@ -1767,6 +1778,7 @@ def run_app() -> None:
             matrix = build_wealth_matrix(portfolio_returns_net, sim_cfg, tax_rate=tax_rate)
             n_cohorts = matrix.attrs.get("n_cohorts", matrix.shape[1])
 
+            # cohort_summary and term_wealth are still computed for PDF export
             cohort_summary = summarise_cohorts(matrix)
             term_wealth = compute_terminal_wealth_distribution(portfolio_returns_net, sim_cfg, tax_rate=tax_rate)
 
@@ -1801,6 +1813,7 @@ def run_app() -> None:
                 "path_best": path_best,
                 "path_worst": path_worst,
                 "erfolg_aktuell": erfolg_aktuell,
+                "withdrawal_eur": _withdrawal_eur_run,
                 "rate_min": rate_min,
                 "rate_max": rate_max,
                 "rate_step": rate_step,
@@ -1820,25 +1833,32 @@ def run_app() -> None:
 
         st.subheader("Übersicht")
 
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             st.metric("Startvermögen", _euro_str(r["sim_cfg"].initial_wealth))
         with col2:
-            st.metric("Entnahmesatz", f"{r['sim_cfg'].annual_withdrawal_rate*100:.1f} % p.a.")
+            st.metric("Entnahme p.a.", _euro_str(r["withdrawal_eur"]))
         with col3:
-            st.metric("Horizont", f"{r['sim_cfg'].horizon_years} Jahre")
+            st.metric("Entnahmesatz p.a.", f"{r['sim_cfg'].annual_withdrawal_rate*100:.2f} %")
         with col4:
+            st.metric("Horizont", f"{r['sim_cfg'].horizon_years} Jahre")
+        with col5:
             st.metric("Historische Läufe", f"{r['n_cohorts']}")
 
         st.markdown(f"Historische Erfolgsquote für den gewählten Entnahmesatz: **{r['erfolg_aktuell']*100:.1f} %**")
         st.markdown(f"Portfolio-Mix: **{format_weights(r['port_cfg_net'].weights)}**")
 
+        # -----------------------------------------------------------------------
+        # TABS
+        # Note: "4. Kohorten und Export" tab is currently hidden.
+        # To re-enable it, add "4. Kohorten und Export" back to the list below
+        # and uncomment the `with tabs[3]:` block further down.
+        # -----------------------------------------------------------------------
         tabs = st.tabs(
             [
                 "1. Historische Bandbreite",
                 "2. Kumulierte Entnahmen",
                 "3. Erfolgskurve",
-                "4. Kohorten und Export",
             ]
         )
 
@@ -1859,16 +1879,17 @@ def run_app() -> None:
             st.pyplot(fig_fan, use_container_width=True)
             plt.close(fig_fan)
 
-            with st.expander("Optional: Alle historischen Vermögenspfade anzeigen", expanded=False):
-                title_paths = format_chart_title(
-                    "Historische Vermögenspfade aller Kohorten",
-                    r["port_cfg_net"],
-                    r["sim_cfg"],
-                    extra=extra_fan,
-                )
-                fig_paths = plot_all_wealth_paths(r["matrix"], title=title_paths)
-                st.pyplot(fig_paths, use_container_width=True)
-                plt.close(fig_paths)
+            # HIDDEN – re-enable by uncommenting this block
+            # with st.expander("Optional: Alle historischen Vermögenspfade anzeigen", expanded=False):
+            #     title_paths = format_chart_title(
+            #         "Historische Vermögenspfade aller Kohorten",
+            #         r["port_cfg_net"],
+            #         r["sim_cfg"],
+            #         extra=extra_fan,
+            #     )
+            #     fig_paths = plot_all_wealth_paths(r["matrix"], title=title_paths)
+            #     st.pyplot(fig_paths, use_container_width=True)
+            #     plt.close(fig_paths)
 
         with tabs[1]:
             st.header("Kumulierte Entnahmen")
@@ -1924,159 +1945,139 @@ def run_app() -> None:
             st.pyplot(fig_success, use_container_width=True)
             plt.close(fig_success)
 
-        with tabs[3]:
-            st.header("Kohorten und Export")
-
-            st.subheader("Kohortenübersicht (nach Endvermögen sortiert)")
-            st.dataframe(r["cohort_summary"], use_container_width=True)
-
-            st.subheader("Downloads")
-            wealth_paths_csv = r["matrix"].to_csv(index=True).encode("utf-8-sig")
-            cohort_summary_csv = r["cohort_summary"].to_csv(index=False).encode("utf-8-sig")
-
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.download_button(
-                    "Wealth Paths (alle Kohorten) als CSV herunterladen",
-                    data=wealth_paths_csv,
-                    file_name="wealth_paths_all_cohorts.csv",
-                    mime="text/csv",
-                )
-            with col_b:
-                st.download_button(
-                    "Kohortenübersicht als CSV herunterladen",
-                    data=cohort_summary_csv,
-                    file_name="cohort_summary.csv",
-                    mime="text/csv",
-                )
-
-
-            st.subheader("PDF Export")
-            
-            if st.button("📄 Alle Charts als PDF exportieren"):
-                with st.spinner("PDF wird erstellt..."):
-                    
-                    # Regenerate all figures fresh (don't use closed ones)
-                    extra_fan = r["tax_str"] + f", {r['n_cohorts']} Läufe"
-                    
-                    title_fan = format_chart_title(
-                        "Historische Bandbreite", r["port_cfg_net"], r["sim_cfg"], extra=extra_fan
-                    )
-                    fig_pdf_fan = plot_fan_chart(r["matrix"], title=title_fan)
-            
-                    title_paths = format_chart_title(
-                        "Historische Vermögenspfade", r["port_cfg_net"], r["sim_cfg"], extra=extra_fan
-                    )
-                    fig_pdf_paths = plot_all_wealth_paths(r["matrix"], title=title_paths)
-            
-                    title_cum = format_chart_title(
-                        "Kumulierte Entnahmen", r["port_cfg_net"], r["sim_cfg"], extra=r["tax_str"]
-                    )
-                    infl_for_plot = r["inflation_series"] if r["port_cfg_net"].use_inflation else None
-                    fig_pdf_cum = plot_cumulative_withdrawals(
-                        r["path_median"], r["sim_cfg"], title_cum,
-                        inflation=infl_for_plot, real_mode=r["port_cfg_net"].use_inflation,
-                    )
-            
-                    fig_pdf_success = plot_success_curve(
-                        r["portfolio_returns_gross"], r["portfolio_returns_net"],
-                        r["sim_cfg"], r["port_cfg_net"],
-                        rate_min=r["rate_min"], rate_max=r["rate_max"], rate_step=r["rate_step"],
-                        tax_rate=r["tax_rate"], show_gross_line=r["show_gross_line"],
-                    )
-            
-                    extra_hist = r["tax_str"]
-                    n_cohorts_tw = r["term_wealth"].attrs.get("n_cohorts", None)
-                    if n_cohorts_tw:
-                        extra_hist += f", {n_cohorts_tw} Läufe"
-                    title_hist = format_chart_title(
-                        f"Verteilung des Restvermögens nach {r['sim_cfg'].horizon_years} Jahren",
-                        r["port_cfg_net"], r["sim_cfg"], extra=extra_hist,
-                    )
-                    fig_pdf_hist = plot_terminal_wealth_hist(
-                        r["term_wealth"], title=title_hist, sim_cfg=r["sim_cfg"]
-                    )
-            
-                    # Build PDF in memory
-                    pdf_buf = io.BytesIO()
-                    with PdfPages(pdf_buf) as pdf:
-                        d = pdf.infodict()
-                        d['Title'] = 'Verrentungs-Simulation'
-            
-                        # Cover info page
-                        fig_cover, ax_cover = plt.subplots(figsize=FIGSIZE_16_9)
-                        ax_cover.axis("off")
-                        info_lines = [
-                            "Verrentungs-Simulation: MSCI World, REXP und Gold",
-                            "",
-                            f"Startvermögen:       {_euro_str(r['sim_cfg'].initial_wealth)}",
-                            f"Entnahmesatz:        {r['sim_cfg'].annual_withdrawal_rate*100:.1f} % p.a.",
-                            f"Horizont:            {r['sim_cfg'].horizon_years} Jahre",
-                            f"Portfolio-Mix:       {format_weights(r['port_cfg_net'].weights)}",
-                            f"Historische Läufe:   {r['n_cohorts']}",
-                            f"Erfolgsquote:        {r['erfolg_aktuell']*100:.1f} %",
-                            f"Steuer:              {r['tax_str']}",
-                        ]
-                        ax_cover.text(
-                            0.05, 0.95, "\\n".join(info_lines),
-                            transform=ax_cover.transAxes,
-                            fontsize=14, verticalalignment='top',
-                            fontfamily='monospace',
-                        )
-                        pdf.savefig(fig_cover, bbox_inches='tight')
-                        plt.close(fig_cover)
-            
-                        # All charts
-                        for fig in [fig_pdf_fan, fig_pdf_paths, fig_pdf_cum, fig_pdf_success, fig_pdf_hist]:
-                            pdf.savefig(fig, bbox_inches='tight')
-                            plt.close(fig)
-            
-                    pdf_buf.seek(0)
-            
-                st.download_button(
-                    label="⬇️ PDF herunterladen",
-                    data=pdf_buf,
-                    file_name="Verrentungs_Simulation.pdf",
-                    mime="application/pdf",
-                )
-
-            with st.expander("Optional: Verteilung des Restvermögens anzeigen", expanded=False):
-                extra_hist = r["tax_str"]
-                n_cohorts_tw = r["term_wealth"].attrs.get("n_cohorts", None)
-                if n_cohorts_tw is not None:
-                    extra_hist += f", {n_cohorts_tw} Läufe"
-
-                title_hist = format_chart_title(
-                    f"Verteilung des Restvermögens nach {r['sim_cfg'].horizon_years} Jahren",
-                    r["port_cfg_net"],
-                    r["sim_cfg"],
-                    extra=extra_hist,
-                )
-                fig_hist = plot_terminal_wealth_hist(r["term_wealth"], title=title_hist, sim_cfg=r["sim_cfg"])
-                st.pyplot(fig_hist, use_container_width=True)
-                plt.close(fig_hist)
+        # -----------------------------------------------------------------------
+        # HIDDEN TAB: "4. Kohorten und Export"
+        # To re-enable:
+        #   1) Add "4. Kohorten und Export" back to the st.tabs([...]) list above
+        #   2) Uncomment the entire block below (with tabs[3]: ... )
+        # -----------------------------------------------------------------------
+        # with tabs[3]:
+        #     st.header("Kohorten und Export")
+        #
+        #     st.subheader("Kohortenübersicht (nach Endvermögen sortiert)")
+        #     st.dataframe(r["cohort_summary"], use_container_width=True)
+        #
+        #     st.subheader("Downloads")
+        #     wealth_paths_csv = r["matrix"].to_csv(index=True).encode("utf-8-sig")
+        #     cohort_summary_csv = r["cohort_summary"].to_csv(index=False).encode("utf-8-sig")
+        #
+        #     col_a, col_b = st.columns(2)
+        #     with col_a:
+        #         st.download_button(
+        #             "Wealth Paths (alle Kohorten) als CSV herunterladen",
+        #             data=wealth_paths_csv,
+        #             file_name="wealth_paths_all_cohorts.csv",
+        #             mime="text/csv",
+        #         )
+        #     with col_b:
+        #         st.download_button(
+        #             "Kohortenübersicht als CSV herunterladen",
+        #             data=cohort_summary_csv,
+        #             file_name="cohort_summary.csv",
+        #             mime="text/csv",
+        #         )
+        #
+        #     st.subheader("PDF Export")
+        #
+        #     if st.button("📄 Alle Charts als PDF exportieren"):
+        #         with st.spinner("PDF wird erstellt..."):
+        #
+        #             extra_fan = r["tax_str"] + f", {r['n_cohorts']} Läufe"
+        #
+        #             title_fan = format_chart_title(
+        #                 "Historische Bandbreite", r["port_cfg_net"], r["sim_cfg"], extra=extra_fan
+        #             )
+        #             fig_pdf_fan = plot_fan_chart(r["matrix"], title=title_fan)
+        #
+        #             title_paths = format_chart_title(
+        #                 "Historische Vermögenspfade", r["port_cfg_net"], r["sim_cfg"], extra=extra_fan
+        #             )
+        #             fig_pdf_paths = plot_all_wealth_paths(r["matrix"], title=title_paths)
+        #
+        #             title_cum = format_chart_title(
+        #                 "Kumulierte Entnahmen", r["port_cfg_net"], r["sim_cfg"], extra=r["tax_str"]
+        #             )
+        #             infl_for_plot = r["inflation_series"] if r["port_cfg_net"].use_inflation else None
+        #             fig_pdf_cum = plot_cumulative_withdrawals(
+        #                 r["path_median"], r["sim_cfg"], title_cum,
+        #                 inflation=infl_for_plot, real_mode=r["port_cfg_net"].use_inflation,
+        #             )
+        #
+        #             fig_pdf_success = plot_success_curve(
+        #                 r["portfolio_returns_gross"], r["portfolio_returns_net"],
+        #                 r["sim_cfg"], r["port_cfg_net"],
+        #                 rate_min=r["rate_min"], rate_max=r["rate_max"], rate_step=r["rate_step"],
+        #                 tax_rate=r["tax_rate"], show_gross_line=r["show_gross_line"],
+        #             )
+        #
+        #             extra_hist = r["tax_str"]
+        #             n_cohorts_tw = r["term_wealth"].attrs.get("n_cohorts", None)
+        #             if n_cohorts_tw:
+        #                 extra_hist += f", {n_cohorts_tw} Läufe"
+        #             title_hist = format_chart_title(
+        #                 f"Verteilung des Restvermögens nach {r['sim_cfg'].horizon_years} Jahren",
+        #                 r["port_cfg_net"], r["sim_cfg"], extra=extra_hist,
+        #             )
+        #             fig_pdf_hist = plot_terminal_wealth_hist(
+        #                 r["term_wealth"], title=title_hist, sim_cfg=r["sim_cfg"]
+        #             )
+        #
+        #             pdf_buf = io.BytesIO()
+        #             with PdfPages(pdf_buf) as pdf:
+        #                 d = pdf.infodict()
+        #                 d['Title'] = 'Verrentungs-Simulation'
+        #
+        #                 fig_cover, ax_cover = plt.subplots(figsize=FIGSIZE_16_9)
+        #                 ax_cover.axis("off")
+        #                 info_lines = [
+        #                     "Verrentungs-Simulation: MSCI World, REXP und Gold",
+        #                     "",
+        #                     f"Startvermögen:       {_euro_str(r['sim_cfg'].initial_wealth)}",
+        #                     f"Entnahmesatz:        {r['sim_cfg'].annual_withdrawal_rate*100:.1f} % p.a.",
+        #                     f"Horizont:            {r['sim_cfg'].horizon_years} Jahre",
+        #                     f"Portfolio-Mix:       {format_weights(r['port_cfg_net'].weights)}",
+        #                     f"Historische Läufe:   {r['n_cohorts']}",
+        #                     f"Erfolgsquote:        {r['erfolg_aktuell']*100:.1f} %",
+        #                     f"Steuer:              {r['tax_str']}",
+        #                 ]
+        #                 ax_cover.text(
+        #                     0.05, 0.95, "\\n".join(info_lines),
+        #                     transform=ax_cover.transAxes,
+        #                     fontsize=14, verticalalignment='top',
+        #                     fontfamily='monospace',
+        #                 )
+        #                 pdf.savefig(fig_cover, bbox_inches='tight')
+        #                 plt.close(fig_cover)
+        #
+        #                 for fig in [fig_pdf_fan, fig_pdf_paths, fig_pdf_cum, fig_pdf_success, fig_pdf_hist]:
+        #                     pdf.savefig(fig, bbox_inches='tight')
+        #                     plt.close(fig)
+        #
+        #             pdf_buf.seek(0)
+        #
+        #         st.download_button(
+        #             label="⬇️ PDF herunterladen",
+        #             data=pdf_buf,
+        #             file_name="Verrentungs_Simulation.pdf",
+        #             mime="application/pdf",
+        #         )
+        #
+        #     with st.expander("Optional: Verteilung des Restvermögens anzeigen", expanded=False):
+        #         extra_hist = r["tax_str"]
+        #         n_cohorts_tw = r["term_wealth"].attrs.get("n_cohorts", None)
+        #         if n_cohorts_tw is not None:
+        #             extra_hist += f", {n_cohorts_tw} Läufe"
+        #
+        #         title_hist = format_chart_title(
+        #             f"Verteilung des Restvermögens nach {r['sim_cfg'].horizon_years} Jahren",
+        #             r["port_cfg_net"],
+        #             r["sim_cfg"],
+        #             extra=extra_hist,
+        #         )
+        #         fig_hist = plot_terminal_wealth_hist(r["term_wealth"], title=title_hist, sim_cfg=r["sim_cfg"])
+        #         st.pyplot(fig_hist, use_container_width=True)
+        #         plt.close(fig_hist)
 
 
 if __name__ == "__main__":
     run_app()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

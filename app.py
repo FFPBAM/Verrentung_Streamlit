@@ -1688,7 +1688,7 @@ def run_app() -> None:
         st.info('Bitte Einstellungen links wählen und dann „Berechnung starten" klicken.')
     else:
         if st.session_state.get("last_config_fingerprint") != current_fp:
-            st.warning("Einstellungen wurden geändert. Bitte „Berechnung starten" klicken, um die Ergebnisse zu aktualisieren.")
+            st.warning('Einstellungen wurden geändert. Bitte „Berechnung starten" klicken, um die Ergebnisse zu aktualisieren.')
 
     if run_clicked:
         sum_weights_pct_run = float(

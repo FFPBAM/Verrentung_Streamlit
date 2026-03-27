@@ -159,7 +159,7 @@ st.markdown("""
 
     /* Shrink everything slightly for print */
     body {
-        zoom: 0.98 !important;
+        zoom: 1 !important;
     }
 
     @page {

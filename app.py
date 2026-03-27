@@ -1685,7 +1685,7 @@ def run_app() -> None:
     current_fp = _current_config_fingerprint()
 
     if st.session_state["results"] is None:
-        st.info("Bitte Einstellungen links wählen und dann „Berechnung starten" klicken.")
+        st.info('Bitte Einstellungen links wählen und dann „Berechnung starten" klicken.')
     else:
         if st.session_state.get("last_config_fingerprint") != current_fp:
             st.warning("Einstellungen wurden geändert. Bitte „Berechnung starten" klicken, um die Ergebnisse zu aktualisieren.")

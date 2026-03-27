@@ -43,7 +43,7 @@ import io
 st.markdown("""
 <style>
 @media print {
-    /* Hide Streamlit UI chrome */
+    /* Hide Streamlit chrome */
     [data-testid="stSidebar"],
     header,
     footer,
@@ -52,83 +52,134 @@ st.markdown("""
         display: none !important;
     }
 
-    .main .block-container {
+    html, body {
+        margin: 0 !important;
         padding: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        overflow: hidden !important;
+        background: white !important;
+        color: black !important;
+        font-size: 9pt !important;
+    }
+
+    [data-testid="stAppViewContainer"],
+    .main,
+    .block-container {
+        margin: 0 !important;
+        padding: 0.2cm 0.4cm !important;
         max-width: 100% !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        background: white !important;
     }
 
-    * {
-        overflow: visible !important;
-        white-space: normal !important;
+    /* Compress all text spacing */
+    h1, h2, h3, h4, h5, h6 {
+        margin-top: 0.2rem !important;
+        margin-bottom: 0.2rem !important;
+        line-height: 1.1 !important;
     }
 
-    /* FIX: Keep metric columns visible in a row */
+    p, div, label, span {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        line-height: 1.1 !important;
+    }
+
+    /* Keep metric row compact */
     [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: wrap !important;
-        gap: 1rem !important;
+        flex-wrap: nowrap !important;
+        gap: 0.4rem !important;
     }
 
     [data-testid="column"] {
-        flex: 1 1 auto !important;
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
         width: auto !important;
-        display: block !important;
-        min-width: 120px !important;
     }
 
-    /* Metric values: ensure full display */
-    [data-testid="stMetricValue"] {
-        font-size: 16pt !important;
-        white-space: nowrap !important;
-        overflow: visible !important;
+    [data-testid="stMetric"] {
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     [data-testid="stMetricLabel"] {
-        font-size: 9pt !important;
-        color: #444 !important;
+        font-size: 7pt !important;
+        line-height: 1.0 !important;
+        margin: 0 !important;
     }
 
-    /* Charts */
-    [data-testid="stPlotlyChart"],
-    [data-testid="stVegaLiteChart"],
-    iframe {
+    [data-testid="stMetricValue"] {
+        font-size: 10pt !important;
+        line-height: 1.0 !important;
+        white-space: nowrap !important;
+        margin: 0 !important;
+    }
+
+    /* Reduce whitespace from containers/tabs */
+    [data-testid="stVerticalBlock"] > div {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    button, input, textarea, select {
+        display: none !important;
+    }
+
+    /* Only print active tab content */
+    [role="tablist"] {
+        display: none !important;
+    }
+
+    /* Make charts fit */
+    canvas, img, svg {
+        max-width: 100% !important;
+        max-height: 150mm !important;
+        height: auto !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
-        max-width: 100% !important;
+    }
+
+    [data-testid="stImage"],
+    [data-testid="stPlotlyChart"],
+    [data-testid="stVegaLiteChart"],
+    iframe,
+    figure {
+        margin: 0 !important;
+        padding: 0 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        max-height: 150mm !important;
+    }
+
+    /* Shrink everything slightly for print */
+    body {
+        zoom: 0.72 !important;
     }
 
     @page {
-        margin: 1.5cm;
-        size: A4;
+        size: A4 portrait;
+        margin: 0.5cm;
     }
 
-    /* White background for print */
-    body, .main, [data-testid="stAppViewContainer"] {
-        background-color: white !important;
-        color: black !important;
-    }
-    @media print {
-        /* Scale entire content to fit one page */
-        body {
-            transform: scale(0.75);
-            transform-origin: top left;
-            width: 133%; /* compensate for scale */
-        }
-        
-        /* Prevent any page breaks */
-        * {
-            page-break-before: avoid !important;
-            page-break-after: avoid !important;
-            page-break-inside: avoid !important;
-            break-before: avoid !important;
-            break-after: avoid !important;
-            break-inside: avoid !important;
-        }
+    * {
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-before: avoid !important;
+        break-after: avoid !important;
+        break-inside: avoid !important;
+        box-sizing: border-box !important;
     }
 }
 </style>
 """, unsafe_allow_html=True)
+
 # ---------------------------------------------------------------------------
 # SCENARIO SETTINGS (ADJUST HERE)
 # ---------------------------------------------------------------------------

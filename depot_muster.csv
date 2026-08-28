@@ -1,0 +1,7 @@
+﻿isin;wkn;name;assetklasse;bestand;waehrung;kurs;devisenkurs;kurswert_eur;ertrag_basis;ertrag_je_einheit;ertrag_pa_eur;ertragsart;zahlungsfrequenz;faelligkeit;ertrag_quelle;stichtag
+US00287Y1091;US00287Y1091;AbbVie Inc.;aktien;116;USD;258,15;1,1652;25.700,79;je_stueck;6,63;660,36;dividende;quartal;;letzte_ausschuettung;2026-08-28
+DE0008404005;840400;Allianz SE;aktien;67;EUR;450,50;1;30.183,50;je_stueck;17,03;1.140,89;dividende;jaehrlich;;letzte_ausschuettung;2026-08-28
+XS3229496180;;Deutsche Post IHS 3,0 % 25.11.31;renten;35.000;EUR;97,87;1;35.049,52;prozent_nominal;3,00;1.050,00;kupon;jaehrlich;2031-11-25;prospekt_kupon;2026-08-28
+XS3274805376;;E.ON IHS 3,448 % 19.01.34;renten;35.000;EUR;96,77;1;34.601,59;prozent_nominal;3,448;1.206,80;kupon;jaehrlich;2034-01-19;prospekt_kupon;2026-08-28
+DE000A0S9GB0;A0S9GB;Gold (Xetra-Gold);edelmetall;300;EUR;72,50;1;21.750,00;betrag_gesamt;;0,00;kein_ertrag;;;;2026-08-28
+;;Liquiditaet;liquiditaet;;EUR;;1;12.500,00;betrag_gesamt;;0,00;kein_ertrag;;;;2026-08-28
